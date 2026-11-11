@@ -356,6 +356,8 @@ aside{display:grid;gap:12px;min-width:0}
     <span class="chip"><span class="dot" id="connDot"></span><span id="onlineTxt">Connecting…</span></span>
     <span class="chip" id="meChip" hidden></span>
     <button class="btn small" id="muteBtn" aria-pressed="false" title="Sounds on">🔊 Sound</button>
+    <span class="chip" id="hostChip" hidden></span>
+    <button class="btn primary small" id="claimHostBtn" hidden title="Nobody is hosting right now">Be the host</button>
     <button class="btn small" id="trailerBtn" hidden title="Play a ~90 second showcase with fake data, for screen recording">🎬 Trailer</button>
     <button class="btn small" id="yallaBtn" hidden title="Call everyone for a game">📣 Yalla!</button>
     <button class="btn primary" id="hostBtn" hidden>Host controls</button>
@@ -428,7 +430,7 @@ aside{display:grid;gap:12px;min-width:0}
 const TEAM = [];
 const byName = {};
 const PALETTE = ["#B9512F","#22788A","#7E4FA3","#4F7A22","#A8761C","#B83F70","#2F5E9E","#8A5A2B","#3F7356","#9A3B3B","#5B6B2E","#6A4C93"];
-const HOST = (window.MAJLIS_CONFIG&&window.MAJLIS_CONFIG.hostName)||"the host";
+let HOST = "the host";
 // Fictional people for the trailer only.
 const DEMO_TEAM = [
   {name:"Noura", country:"SA", g:"f"}, {name:"Hamza", country:"PK", g:"m"}, {name:"Bilal", country:"PK", g:"m"},
@@ -2490,6 +2492,25 @@ $("trailerStop").onclick=stopTrailer;
 document.addEventListener("keydown", e=>{ if (!S.demo) return; if (e.key==="Escape") stopTrailer(); });
 
 /* ---------- roster from the live room (name + country of everyone who joined) ---------- */
+// Who is hosting: set by live.js from the room. The host is whoever claimed it; if they leave, anyone can take over.
+S.host = null;
+function hostOnline(){ return !!(S.host && (S.host.uid===S.uid || (S.peers||[]).some(p=>p.by===S.host.uid))); }
+function renderHostChip(){
+  const chip=$("hostChip"), btn=$("claimHostBtn"); if (!chip||!btn) return;
+  if (!window.__majlisClaimHost){ chip.hidden=true; btn.hidden=true; return; }
+  const online=hostOnline();
+  chip.hidden = !S.host || S.isOwner;
+  if (S.host) chip.textContent = `Host: ${S.host.name}${online?"":" (away)"}`;
+  btn.hidden = S.isOwner || (S.host && online);
+}
+window.__majlisSetHost = (h, mine) => {
+  S.host = h && h.uid ? h : null; HOST = S.host ? S.host.name : "the host";
+  const was=S.isOwner; S.isOwner=!!mine;
+  if (S.isOwner && !was) toast("You're the host now. Open Host controls to start a game 🎮");
+  try{ renderAll(); }catch{} renderHostChip();
+};
+setInterval(renderHostChip, 2000);
+$("claimHostBtn").onclick = () => window.__majlisClaimHost && window.__majlisClaimHost();
 window.__majlisRoster = list => {
   for (const p of list){
     if (!p || !p.name || !COUNTRY[p.country]) continue;

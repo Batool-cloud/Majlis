@@ -10,10 +10,6 @@ window.MAJLIS_CONFIG = {
     messagingSenderId: "832009285485",
     appId: "1:832009285485:web:b4668d439299bbfaee7464"
   },
-  // The name shown as host ("Waiting for ... to start").
-  hostName: "Batool",
-  // Host PIN: whoever joins with this PIN gets the host controls.
-  hostPin: "532266",
   // Default room. Share a private room with ?room=yourcode at the end of the link.
   room: "main"
 };
