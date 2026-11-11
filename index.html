@@ -1,5 +1,13 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Al Majlis</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Al Majlis">
+<meta name="theme-color" content="#17130F">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
 <script src="config.js"></script>
 <script>window.majlisReady=new Promise(r=>window.__majlisResolve=r);</script>
 <script type="module" src="live.js" onerror="window.__majlisResolve(null)"></script>
@@ -327,6 +335,34 @@ aside{display:grid;gap:12px;min-width:0}
 .power{width:130px;height:8px;border-radius:4px;background:rgba(255,255,255,.2);overflow:hidden;flex:none}
 .power i{display:block;height:100%;width:0;background:#F0B54A}
 @media (max-width:560px){.pool-score{font-size:24px}.pool-turn .who{font-size:14px}.pool-team small{display:none}}
+
+/* ---------- phones: the room photo stays clean; controls and menus sit under it ---------- */
+@media (max-width:760px), (orientation:landscape) and (max-height:520px){
+  .wrap{padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));gap:10px}
+  .main{display:contents}
+  .wrap>.bar{order:0}.wrap>.rooms{order:1}.wrap .stage-wrap{order:2}.wrap>.host{order:3}.wrap>.setup{order:4}.wrap aside{order:5}
+  .stage-wrap:not(.tall){aspect-ratio:auto;overflow:visible;background:none;box-shadow:none;border-radius:0;display:flex;flex-direction:column;gap:8px}
+  .stage-wrap:not(.tall) .scene{position:relative;inset:auto;width:100%;aspect-ratio:1376/768;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);background:#1a1410}
+  .stage-wrap:not(.tall) .mebar{position:static;max-width:none;justify-content:flex-start;order:3}
+  .stage-wrap:not(.tall) #menuSlot{order:4}
+  .stage-wrap:not(.tall) .menu-card{position:static;width:auto;grid-template-columns:1fr 1fr}
+  .stage-wrap:not(.tall) .menu-card b{grid-column:1/-1}
+  .stage-wrap:not(.tall) #popSlot{order:5}
+  .stage-wrap:not(.tall) .pop{position:static!important;inset:auto!important;min-width:0}
+  .stage-wrap:not(.tall) #calloutSlot{order:2}
+  .stage-wrap:not(.tall) .callout{position:static;transform:none}
+  .stage-wrap:not(.tall) .hint-line{position:static;transform:none;align-self:center;background:none;color:var(--muted);padding:0}
+  .stage-wrap:not(.tall) .conn{position:static;align-self:flex-start;order:6}
+  .stage-wrap:not(.tall) .room-tag{font-size:13px;padding:3px 10px;left:8px;top:8px}
+  .stage-wrap:not(.tall) .stage-tools{right:8px;top:8px}
+  .rooms{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .setup{padding:10px}
+}
+/* phone turned sideways: the room fills the screen height */
+@media (orientation:landscape) and (max-height:520px){
+  .wrap{padding-block:6px 12px}
+  .stage-wrap:not(.tall){aspect-ratio:auto;width:min(100%,calc((100svh - 16px)*1376/768));margin-inline:auto}
+}
 /* trailer mode */
 .trailer-bar{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:96;display:flex;align-items:center;gap:8px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:5px 6px 5px 12px;box-shadow:var(--shadow);opacity:.35;transition:opacity .2s;font-size:13px;font-variant-numeric:tabular-nums}
 .trailer-bar:hover,.trailer-bar:focus-within{opacity:1}
@@ -1022,10 +1058,10 @@ function renderMeBar(){
   if (!S.name || !S.entered || overlayOpen()) return;
   for (const e of REACTIONS) bar.append(el("button",{class:"rx",text:e,title:"React","aria-label":`React ${e}`,onclick:ev=>{ev.stopPropagation(); sendReact(e);}}));
   if (S.drink==="coffee") bar.append(el("button",{class:"glass gold",text:"Shake your cup ☕",onclick:e=>{e.stopPropagation(); shakeCup();}}));
-  bar.append(el("button",{class:"glass",text: S.status ? statusText(S.status)+"  ✕" : "Set status",title:S.status?"Clear your status":"Set a quick status",onclick:e=>{ e.stopPropagation(); if (S.status) setStatus(null); else openStatus(); }}));
+  bar.append(el("button",{class:"glass",text: S.status ? statusText(S.status)+"  ✕" : "Set status",title:S.status?"Clear your status":"Set a quick status",onclick:e=>{ e.stopPropagation(); if (S.status) setStatus(null); else if ($("popSlot").querySelector(".status-pop")) closePop(); else openStatus(); }}));
 }
 function openStatus(){
-  const p=el("div",{class:"pop",style:"right:12px;bottom:56px"}, el("b",{text:"Your status"}));
+  const p=el("div",{class:"pop status-pop",style:"right:12px;bottom:56px"}, el("b",{text:"Your status"}));
   for (const [k,t] of STATUSES) p.append(el("button",{"aria-pressed":String(S.status===k),text:t,onclick:e=>{e.stopPropagation(); setStatus(k); closePop();}}));
   $("popSlot").replaceChildren(p);
 }
@@ -1090,10 +1126,10 @@ const tn = T => S.teamNames[T] || `Team ${T==="A"?1:2}`;
 // The newest choice wins. A new session starts everyone off with no team.
 function homeTeams(){
   const st=S.setup;
-  if (!st.session) return st.teams || DEFAULT_TEAMS;
+  if (!st.session && st.teams) return st.teams;
   if (st.locked && st.teams) return st.teams;
   const choice={};
-  for (const [uid,p] of Object.entries(S.teamPicks)){ const n=nameOf(uid); if (n && byName[n] && p.session===st.session && (p.team==="A"||p.team==="B"||p.team===null)) if (!choice[n] || (+p.at||0)>choice[n].at) choice[n]={team:p.team, at:+p.at||0}; }
+  for (const [uid,p] of Object.entries(S.teamPicks)){ const n=nameOf(uid); if (n && byName[n] && (p.session||0)===(st.session||0) && (p.team==="A"||p.team==="B"||p.team===null)) if (!choice[n] || (+p.at||0)>choice[n].at) choice[n]={team:p.team, at:+p.at||0}; }
   for (const [n,a] of Object.entries(st.assign||{})) if (byName[n] && (!choice[n] || (+a.at||0)>choice[n].at)) choice[n]={team:a.team, at:+a.at||0};
   const t={A:[],B:[]}; for (const m of TEAM){ const c=choice[m.name]; if (c && (c.team==="A"||c.team==="B")) t[c.team].push(m.name); }
   return t;
@@ -1104,7 +1140,7 @@ async function setupWrite(patch){
   try{ await S.db.doc("game/setup").set({...S.setup, ...patch}); }catch{ toast("Could not save. Try again."); }
 }
 async function pickTeam(T){
-  if (!S.db || !S.uid || !byName[S.name]){ toast("Sign in with your Claude account to pick a team"); return; }
+  if (!S.db || !S.uid || !byName[S.name]){ toast("Join with your name first to pick a team"); return; }
   if (S.setup.locked){ toast(`${HOST} has locked the teams`); return; }
   try{ await S.db.doc("teampick/"+S.uid).set({team:T, session:S.setup.session||0, at:Date.now()}); }catch{ toast("Could not save your team. Try again."); }
 }
@@ -1204,7 +1240,10 @@ function renderNamePanel(){
 }
 const QZ = () => { const ids=G().qs; return Array.isArray(ids)&&ids.length ? ids.map(id=>QBYID[id]).filter(Boolean) : ALLQ.slice(0,10); };
 const teamOf = (n, teams=G().teams) => teams ? (teams.A?.includes(n)?"A":teams.B?.includes(n)?"B":null) : null;
-const canAnswer = (n,q) => { const t=byName[n]; return !!t && (q.c==="SA" ? t.country==="PK" : t.country==="SA"); };
+// Country rule: when both teams have a Saudi and a Pakistani, each person answers about the other country.
+// Otherwise (one country only, or 1 vs 1 from the same country) everyone answers every question.
+const mixedTeams = () => { const t=G()?.teams || homeTeams(); return !!t && teamsValid(t); };
+const canAnswer = (n,q) => { const t=byName[n]; if (!t) return false; if (!mixedTeams()) return true; return q.c==="SA" ? t.country==="PK" : t.country==="SA"; };
 // Order = the order answers reached the host's screen (fair across devices); others fall back to each sender's clock.
 const seenOrder = {}; let seenN = 0;
 const ansKey = a => `${a.uid}:${a.round}:${a.q}`;
@@ -1234,7 +1273,7 @@ async function newQuizRound(teams){
   await hostWrite({mode:"quiz", qs, qround:(g.mode==="quiz"?(g.qround|0):0)+1, round:Date.now(), teams, q:0, phase:"question", qAt:Date.now(), results:{}, winner:null});
   try{ await S.db.doc("game/quizused").set({ids:used}); }catch{}
 }
-const startQuiz = () => { const t=homeTeams(); if (!teamsValid(t)){ toast("For the quiz, each team needs at least one Saudi and one Pakistani member"); S.hostOpen=true; renderHost(); return; } return newQuizRound(t); };
+const startQuiz = () => { const t=homeTeams(); if (!t.A.length || !t.B.length){ toast("Both teams need at least one player for the quiz"); S.hostOpen=true; renderHost(); return; } return newQuizRound(t); };
 const playAgain = () => newQuizRound(G().teams||homeTeams());
 async function reveal(){
   const g=G(), q=QZ()[g.q], res={};
@@ -1297,7 +1336,7 @@ function renderTV(){
     return;
   }
   c.append(top([el("span",{class:"qnum",text:`Question ${g.q+1} / ${QZ().length} · Round ${g.qround||1}`}), el("span",{class:"flag "+q.c,text:COUNTRY[q.c]+" question"})]));
-  const answerer = q.c==="SA" ? "the Pakistani players" : "the Saudi players";
+  const answerer = !mixedTeams() ? "everyone" : q.c==="SA" ? "the Pakistani players" : "the Saudi players";
   c.append(el("div",{class:"qbody"}, el("div",{class:"qart",html:`<svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Picture for the question">${ART[q.art]}</svg>`}),
     el("div",{}, el("p",{class:"qtext",text:q.q}), el("div",{class:"who",text:`Answered by ${answerer}. The first correct answer wins the point.`}))));
   const ch=el("div",{class:"choices"});
@@ -2080,7 +2119,7 @@ function renderChat(){
 }
 $("chatForm").addEventListener("submit", async e=>{
   e.preventDefault(); const t=$("chatInput").value.trim(); if (!t) return;
-  if (!S.name || !S.uid || !S.db){ toast("Sign in with your Claude account to chat."); return; }
+  if (!S.name || !S.uid || !S.db){ toast("Join with your name first to chat."); return; }
   const g=D();
   if (g && g.phase==="draw"){
     const entry=entryFor(roundWord());
@@ -2491,6 +2530,11 @@ $("trailerRestart").onclick=startTrailer;
 $("trailerStop").onclick=stopTrailer;
 document.addEventListener("keydown", e=>{ if (!S.demo) return; if (e.key==="Escape") stopTrailer(); });
 
+/* phone turned sideways: bring the room into view */
+(()=>{ const mq=window.matchMedia("(orientation:landscape) and (max-height:520px)");
+  const go=()=>{ if (mq.matches) setTimeout(()=>{ try{ $("stageWrap").scrollIntoView({block:"start",behavior:"smooth"}); }catch{} }, 250); };
+  try{ mq.addEventListener("change", go); }catch{ try{ mq.addListener(go); }catch{} }
+})();
 /* ---------- roster from the live room (name + country of everyone who joined) ---------- */
 // Who is hosting: set by live.js from the room. The host is whoever claimed it; if they leave, anyone can take over.
 S.host = null;
