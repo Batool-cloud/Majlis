@@ -1,0 +1,15 @@
+{
+  "name": "Al Majlis",
+  "short_name": "Al Majlis",
+  "description": "A virtual majlis for remote and multinational teams.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#17130F",
+  "theme_color": "#17130F",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
